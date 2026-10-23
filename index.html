@@ -3,113 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Voice FX Mixer — Loud</title>
+    <title>Voice FX — Vader Minimal</title>
     <style>
         * { box-sizing: border-box; }
-        body {
-            margin: 0; min-height: 100vh;
-            display: flex; justify-content: center; align-items: center;
-            background-color: #121214; color: #e0e0e3;
-            font-family: 'Consolas', 'Courier New', monospace; padding: 16px;
-        }
-        .mixer-panel {
-            background: linear-gradient(145deg, #1e1e24, #141418);
-            padding: 32px 24px; border-radius: 16px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.7), inset 0 1px 2px rgba(255,255,255,0.08);
-            border: 2px solid #282830; text-align: center;
-            width: 100%; max-width: 380px;
-        }
-        h1 {
-            font-size: 17px; letter-spacing: 3px; text-transform: uppercase;
-            color: #ff3333; margin: 0 0 24px;
-            text-shadow: 0 0 8px rgba(255,51,51,0.3);
-            border-bottom: 1px dashed #3a3a48; padding-bottom: 14px;
-        }
-        .knobs-rack {
-            display: flex; justify-content: space-around; gap: 8px;
-            margin-bottom: 28px; background: #17171c;
-            padding: 18px 8px 12px; border-radius: 8px;
-            border: 1px solid #22222a;
-        }
-        .knob {
-            display: flex; flex-direction: column; align-items: center;
-            cursor: grab; user-select: none; -webkit-user-select: none;
-            touch-action: none; padding: 4px;
-        }
+        body { margin: 0; min-height: 100vh; display: flex; justify-content: center; align-items: center;
+            background: #121214; color: #e0e0e3; font-family: 'Consolas', monospace; padding: 16px; }
+        .mixer-panel { background: linear-gradient(145deg, #1e1e24, #141418); padding: 32px 24px;
+            border-radius: 16px; box-shadow: 0 20px 50px rgba(0,0,0,0.7);
+            border: 2px solid #282830; text-align: center; width: 100%; max-width: 380px; }
+        h1 { font-size: 17px; letter-spacing: 3px; text-transform: uppercase; color: #ff3333;
+            margin: 0 0 24px; border-bottom: 1px dashed #3a3a48; padding-bottom: 14px; }
+        .knobs-rack { display: flex; justify-content: space-around; gap: 8px; margin-bottom: 28px;
+            background: #17171c; padding: 18px 8px 12px; border-radius: 8px; border: 1px solid #22222a; }
+        .knob { display: flex; flex-direction: column; align-items: center; cursor: grab;
+            user-select: none; touch-action: none; padding: 4px; }
         .knob.active { cursor: grabbing; }
-        .knob-body {
-            width: 62px; height: 62px; border-radius: 50%;
+        .knob-body { width: 62px; height: 62px; border-radius: 50%;
             background: radial-gradient(circle at 35% 30%, #55555f, #2a2a32);
-            box-shadow: 0 4px 10px rgba(0,0,0,0.6),
-                        inset 0 1px 2px rgba(255,255,255,0.15),
-                        inset 0 -2px 3px rgba(0,0,0,0.35);
-            position: relative; transition: transform 0.04s linear, box-shadow 0.2s;
-        }
-        .knob-indicator {
-            position: absolute; top: 5px; left: 50%;
-            transform: translateX(-50%); width: 3px; height: 16px;
-            background: #ff3333; border-radius: 2px;
-            box-shadow: 0 0 6px rgba(255,51,51,0.6);
-        }
-        .knob.active .knob-body {
-            box-shadow: 0 0 25px rgba(255,51,51,0.55),
-                        inset 0 1px 2px rgba(255,255,255,0.15),
-                        inset 0 -2px 3px rgba(0,0,0,0.35);
-        }
-        .knob-label {
-            font-size: 10px; text-transform: uppercase; letter-spacing: 1px;
-            color: #8a8a98; margin-top: 8px;
-        }
-        .knob-value {
-            font-size: 11px; color: #ff3333; margin-top: 2px;
-            font-weight: bold; text-shadow: 0 0 4px rgba(255,51,51,0.4);
-            min-height: 14px;
-        }
-        button {
-            width: 100%; padding: 18px 30px; font-size: 15px; font-weight: bold;
-            font-family: inherit; letter-spacing: 1.5px; cursor: pointer;
-            border: 1px solid #ff3333; border-radius: 6px;
-            background-color: #1c1c22; color: #ff3333;
-            box-shadow: 0 0 10px rgba(255,51,51,0.1);
-            transition: all 0.15s ease-in-out; user-select: none;
-            -webkit-user-select: none; outline: none; touch-action: none;
-        }
-        button:hover { background-color: #ff3333; color: #121214;
-            box-shadow: 0 0 20px rgba(255,51,51,0.4); }
-        button.recording {
-            background-color: #ff3333; color: #fff;
-            animation: pulse 1.5s infinite; border-color: #fff;
-        }
-        @keyframes pulse {
-            0%   { box-shadow: 0 0 15px rgba(255,51,51,0.6); }
-            50%  { box-shadow: 0 0 30px rgba(255,51,51,1.0); }
-            100% { box-shadow: 0 0 15px rgba(255,51,51,0.6); }
-        }
-        .display-panel {
-            background-color: #0b0b0d; border: 1px solid #22222a;
-            padding: 12px; border-radius: 4px; margin-top: 18px;
-            min-height: 18px;
-        }
-        p { margin: 0; font-size: 12px; color: #00ffcc;
-            text-shadow: 0 0 5px rgba(0,255,204,0.5); letter-spacing: 0.5px; }
-
-        /* индикатор уровня */
-        .level-meter {
-            margin-top: 10px; height: 8px; background: #1a1a20;
-            border: 1px solid #22222a; border-radius: 4px; overflow: hidden;
-        }
-        .level-fill {
-            height: 100%; width: 0%;
-            background: linear-gradient(90deg, #00ffcc, #ffcc00, #ff3333);
-            transition: width 0.05s linear;
-        }
+            box-shadow: 0 4px 10px rgba(0,0,0,0.6), inset 0 1px 2px rgba(255,255,255,0.15);
+            position: relative; transition: transform 0.04s linear; }
+        .knob-indicator { position: absolute; top: 5px; left: 50%; transform: translateX(-50%);
+            width: 3px; height: 16px; background: #ff3333; border-radius: 2px; }
+        .knob.active .knob-body { box-shadow: 0 0 25px rgba(255,51,51,0.55); }
+        .knob-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #8a8a98; margin-top: 8px; }
+        .knob-value { font-size: 11px; color: #ff3333; margin-top: 2px; font-weight: bold; min-height: 14px; }
+        button { width: 100%; padding: 18px 30px; font-size: 15px; font-weight: bold; font-family: inherit;
+            letter-spacing: 1.5px; cursor: pointer; border: 1px solid #ff3333; border-radius: 6px;
+            background: #1c1c22; color: #ff3333; user-select: none; outline: none; touch-action: none; }
+        button.recording { background: #ff3333; color: #fff; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0%,100% { box-shadow: 0 0 15px rgba(255,51,51,0.6); }
+            50% { box-shadow: 0 0 30px rgba(255,51,51,1.0); } }
+        .display-panel { background: #0b0b0d; border: 1px solid #22222a; padding: 12px;
+            border-radius: 4px; margin-top: 18px; }
+        p { margin: 0; font-size: 12px; color: #00ffcc; letter-spacing: 0.5px; }
+        .level-meter { margin-top: 10px; height: 8px; background: #1a1a20; border-radius: 4px; overflow: hidden; }
+        .level-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #00ffcc, #ffcc00, #ff3333);
+            transition: width 0.05s linear; }
     </style>
 </head>
 <body>
-
 <div class="mixer-panel">
-    <h1>Voice FX Mixer</h1>
-
+    <h1>Voice FX — Vader</h1>
     <div class="knobs-rack">
         <div class="knob" id="pitchKnob">
             <div class="knob-body"><div class="knob-indicator"></div></div>
@@ -127,9 +61,7 @@
             <div class="knob-value" id="distValue"></div>
         </div>
     </div>
-
     <button id="recordBtn">HOLD TO RECORD</button>
-
     <div class="display-panel">
         <p id="status">INITIALIZING...</p>
         <div class="level-meter"><div class="level-fill" id="levelFill"></div></div>
@@ -137,351 +69,205 @@
 </div>
 
 <script>
-// ============================================================
-// 1. Крутилка без внешних зависимостей
-// ============================================================
 class Knob {
     constructor(el, opt) {
-        this.el = el;
-        this.body = el.querySelector('.knob-body');
+        this.el = el; this.body = el.querySelector('.knob-body');
         this.valEl = el.querySelector('.knob-value');
         this.min = opt.min; this.max = opt.max;
         this.mapping = opt.mapping || 'linear';
         this.format = opt.format || (v => v.toFixed(2));
         this.onChange = opt.onChange || null;
         this.norm = this._toNorm(opt.value);
-        this.drag = false; this.startY = 0; this.startNorm = 0;
-
-        el.addEventListener('pointerdown', e => this._down(e));
-        el.addEventListener('pointermove', e => this._move(e));
-        el.addEventListener('pointerup',   e => this._up(e));
-        el.addEventListener('pointercancel', e => this._up(e));
-
-        this._render();
-        if (this.onChange) this.onChange(this.value);
-    }
-    _toNorm(v) {
-        if (this.mapping === 'log')
-            return Math.log(v / this.min) / Math.log(this.max / this.min);
-        return (v - this.min) / (this.max - this.min);
-    }
-    _fromNorm(n) {
-        n = Math.max(0, Math.min(1, n));
-        if (this.mapping === 'log')
-            return this.min * Math.pow(this.max / this.min, n);
-        return this.min + n * (this.max - this.min);
-    }
-    get value() { return this._fromNorm(this.norm); }
-    _down(e) {
-        e.preventDefault();
-        this.drag = true; this.startY = e.clientY; this.startNorm = this.norm;
-        this.el.setPointerCapture(e.pointerId);
-        this.el.classList.add('active');
-    }
-    _move(e) {
-        if (!this.drag) return;
-        const dy = this.startY - e.clientY;
-        this.norm = Math.max(0, Math.min(1, this.startNorm + dy / 200));
-        this._render();
-        if (this.onChange) this.onChange(this.value);
-    }
-    _up(e) {
-        if (!this.drag) return;
         this.drag = false;
-        this.el.classList.remove('active');
-        if (this.el.hasPointerCapture(e.pointerId))
-            this.el.releasePointerCapture(e.pointerId);
+        el.addEventListener('pointerdown', e => {
+            e.preventDefault(); this.drag = true; this.startY = e.clientY;
+            this.startNorm = this.norm; el.setPointerCapture(e.pointerId);
+            el.classList.add('active');
+        });
+        el.addEventListener('pointermove', e => {
+            if (!this.drag) return;
+            const dy = this.startY - e.clientY;
+            this.norm = Math.max(0, Math.min(1, this.startNorm + dy / 200));
+            this._render(); if (this.onChange) this.onChange(this.value);
+        });
+        el.addEventListener('pointerup', e => {
+            this.drag = false; el.classList.remove('active');
+            if (el.hasPointerCapture(e.pointerId)) el.releasePointerCapture(e.pointerId);
+        });
+        this._render(); if (this.onChange) this.onChange(this.value);
     }
+    _toNorm(v) { return this.mapping === 'log'
+        ? Math.log(v / this.min) / Math.log(this.max / this.min)
+        : (v - this.min) / (this.max - this.min); }
+    _fromNorm(n) { n = Math.max(0, Math.min(1, n)); return this.mapping === 'log'
+        ? this.min * Math.pow(this.max / this.min, n)
+        : this.min + n * (this.max - this.min); }
+    get value() { return this._fromNorm(this.norm); }
     _render() {
         this.body.style.transform = `rotate(${-135 + this.norm * 270}deg)`;
         this.valEl.textContent = this.format(this.value);
     }
 }
 
-// ============================================================
-// 2. Состояние
-// ============================================================
-let audioContext = null;
-let mediaStream = null;
+let audioContext = null, mediaStream = null;
+let isRecording = false, recordedChunks = [];
+let recSource = null, recProcessor = null, recMute = null;
+let pbSource = null, pbFilter = null, pbPre = null, pbShaper = null, pbPost = null, pbComp = null;
 
-let isRecording = false;
-let recordedChunks = [];
-let recSource = null;
-let recProcessor = null;
-let recMute = null;
-
-let playbackSource = null;
-let playbackFilter = null;
-let playbackPreGain = null;
-let playbackShaper = null;
-let playbackPostGain = null;
-let playbackCompressor = null;
-
-let currentPlaybackRate = 0.7;
-let currentFilterFreq = 3000;
-let currentDrive = 1.5;
+let currentRate = 0.8, currentFreq = 3000, currentDrive = 1.5;
 
 const recordBtn = document.getElementById('recordBtn');
 const statusText = document.getElementById('status');
 const levelFill = document.getElementById('levelFill');
 
-// ============================================================
-// 3. AudioContext и микрофон
-// ============================================================
 async function ensureContext() {
-    if (!audioContext) {
-        const AC = window.AudioContext || window.webkitAudioContext;
-        audioContext = new AC();
-    }
+    if (!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)();
     if (audioContext.state === 'suspended') await audioContext.resume();
 }
-
 async function ensureStream() {
-    if (mediaStream && mediaStream.getAudioTracks().every(t => t.readyState === 'live'))
-        return mediaStream;
-
-    // AGC включён — это первый рубеж против тихого микрофона.
-    // Нормализация ниже всё равно выровняет уровень.
+    if (mediaStream && mediaStream.getAudioTracks().every(t => t.readyState === 'live')) return mediaStream;
     mediaStream = await navigator.mediaDevices.getUserMedia({
-        audio: {
-            echoCancellation: false,
-            noiseSuppression: false,
-            autoGainControl: true,
-            channelCount: 1
-        }
+        audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: true, channelCount: 1 }
     });
     return mediaStream;
 }
 
-// ============================================================
-// 4. Запись raw PCM + индикатор уровня
-// ============================================================
 async function startRecording() {
-    try {
-        await ensureContext();
-        await ensureStream();
-    } catch (err) {
-        console.error('Mic/Context error:', err);
-        statusText.innerText = 'MIC ERROR — разрешите доступ';
-        return;
-    }
+    try { await ensureContext(); await ensureStream(); }
+    catch (e) { statusText.innerText = 'MIC ERROR'; return; }
 
     stopPlayback();
-
-    recordedChunks = [];
-    isRecording = true;
+    recordedChunks = []; isRecording = true;
 
     recSource = audioContext.createMediaStreamSource(mediaStream);
     recProcessor = audioContext.createScriptProcessor(4096, 1, 1);
-    recMute = audioContext.createGain();
-    recMute.gain.value = 0;
+    recMute = audioContext.createGain(); recMute.gain.value = 0;
 
-    recProcessor.onaudioprocess = (e) => {
+    recProcessor.onaudioprocess = e => {
         if (!isRecording) return;
-        const data = e.inputBuffer.getChannelData(0);
-
-        // индикатор уровня
+        const d = e.inputBuffer.getChannelData(0);
         let peak = 0;
-        for (let i = 0; i < data.length; i++) {
-            const a = Math.abs(data[i]);
-            if (a > peak) peak = a;
-        }
-        levelFill.style.width = Math.min(100, peak * 100 * 2.5) + '%';
-
-        recordedChunks.push(new Float32Array(data));
+        for (let i = 0; i < d.length; i++) { const a = Math.abs(d[i]); if (a > peak) peak = a; }
+        levelFill.style.width = Math.min(100, peak * 250) + '%';
+        recordedChunks.push(new Float32Array(d));
     };
 
-    recSource.connect(recProcessor);
-    recProcessor.connect(recMute);
+    recSource.connect(recProcessor); recProcessor.connect(recMute);
     recMute.connect(audioContext.destination);
-
     recordBtn.classList.add('recording');
     statusText.innerText = 'RECORDING...';
 }
-
 function stopRecording() {
     if (!isRecording) return;
     isRecording = false;
-
     if (recSource) { recSource.disconnect(); recSource = null; }
-    if (recProcessor) {
-        recProcessor.onaudioprocess = null;
-        recProcessor.disconnect();
-        recProcessor = null;
-    }
+    if (recProcessor) { recProcessor.onaudioprocess = null; recProcessor.disconnect(); recProcessor = null; }
     if (recMute) { recMute.disconnect(); recMute = null; }
-
     recordBtn.classList.remove('recording');
     levelFill.style.width = '0%';
-
-    if (recordedChunks.length === 0) {
-        statusText.innerText = 'NO AUDIO — попробуйте ещё';
-        return;
-    }
-
-    playRecordedAudio();
+    if (!recordedChunks.length) { statusText.innerText = 'NO AUDIO'; return; }
+    playRecorded();
 }
 
-// ============================================================
-// 5. Воспроизведение
-// ============================================================
-function makeTanhCurve(amount) {
-    const n = 4096;
-    const c = new Float32Array(n);
-    for (let i = 0; i < n; i++) {
-        const x = (i * 2) / n - 1;
-        c[i] = Math.tanh(x * amount);
-    }
+function tanhCurve(amount) {
+    const n = 4096, c = new Float32Array(n);
+    for (let i = 0; i < n; i++) { const x = (i * 2) / n - 1; c[i] = Math.tanh(x * amount); }
     return c;
 }
-const SHAPER_CURVE = makeTanhCurve(3);
+const SHAPER = tanhCurve(3);
 
-// Нормализация: поднимаем пик до targetPeak, чтобы тихий микрофон звучал нормально
-function normalizePeak(samples, targetPeak = 0.9) {
+function normalize(samples, target = 0.9) {
     let peak = 0;
-    for (let i = 0; i < samples.length; i++) {
-        const a = Math.abs(samples[i]);
-        if (a > peak) peak = a;
-    }
-    if (peak < 1e-6) return; // тишина — не трогаем
-    const gain = targetPeak / peak;
-    for (let i = 0; i < samples.length; i++) samples[i] *= gain;
-    console.log(`[normalize] peak was ${peak.toFixed(4)}, gain ${gain.toFixed(2)}×`);
+    for (let i = 0; i < samples.length; i++) { const a = Math.abs(samples[i]); if (a > peak) peak = a; }
+    if (peak < 1e-6) return;
+    const g = target / peak;
+    for (let i = 0; i < samples.length; i++) samples[i] *= g;
+    console.log('[normalize] peak', peak.toFixed(4), 'gain', g.toFixed(2));
 }
 
-function playRecordedAudio() {
-    // склейка
-    const totalLen = recordedChunks.reduce((s, c) => s + c.length, 0);
-    const samples = new Float32Array(totalLen);
+function playRecorded() {
+    const total = recordedChunks.reduce((s, c) => s + c.length, 0);
+    const samples = new Float32Array(total);
     let off = 0;
     for (const c of recordedChunks) { samples.set(c, off); off += c.length; }
+    normalize(samples, 0.9);
 
-    // ГЛАВНЫЙ ФИКС ГРОМКОСТИ
-    normalizePeak(samples, 0.9);
+    const buf = audioContext.createBuffer(1, samples.length, audioContext.sampleRate);
+    buf.copyToChannel(samples, 0);
 
-    const buffer = audioContext.createBuffer(1, samples.length, audioContext.sampleRate);
-    buffer.copyToChannel(samples, 0);
+    // Цепочка: source → lowpass → preGain → shaper → postGain → compressor → out
+    pbSource = audioContext.createBufferSource();
+    pbSource.buffer = buf;
+    pbSource.playbackRate.value = currentRate;
 
-    // source → filter → preGain → shaper → postGain → compressor → dest
-    playbackSource = audioContext.createBufferSource();
-    playbackSource.buffer = buffer;
-    playbackSource.playbackRate.value = currentPlaybackRate;
+    pbFilter = audioContext.createBiquadFilter();
+    pbFilter.type = 'lowpass';
+    pbFilter.frequency.value = currentFreq;
+    pbFilter.Q.value = 0.7;
 
-    playbackFilter = audioContext.createBiquadFilter();
-    playbackFilter.type = 'lowpass';
-    playbackFilter.frequency.value = currentFilterFreq;
-    playbackFilter.Q.value = 0.7;
+    pbPre = audioContext.createGain();
+    pbPre.gain.value = currentDrive / 3;
 
-    playbackPreGain = audioContext.createGain();
-    playbackPreGain.gain.value = currentDrive / 3;   // управляет «силой» сатурации
+    pbShaper = audioContext.createWaveShaper();
+    pbShaper.curve = SHAPER;
+    pbShaper.oversample = '4x';
 
-    playbackShaper = audioContext.createWaveShaper();
-    playbackShaper.curve = SHAPER_CURVE;
-    playbackShaper.oversample = '4x';
+    pbPost = audioContext.createGain();
+    pbPost.gain.value = 1.6;
 
-    // Компенсация потерь после шейпера: при drive 1.5 теряется ~0.7 по амплитуде,
-    // поэтому ставим буст. Регулируется отдельно от drive, чтобы ручка Drive
-    // меняла характер, а не общую громкость.
-    playbackPostGain = audioContext.createGain();
-    playbackPostGain.gain.value = 1.6;
+    pbComp = audioContext.createDynamicsCompressor();
+    pbComp.threshold.value = -18; pbComp.knee.value = 24;
+    pbComp.ratio.value = 4; pbComp.attack.value = 0.003; pbComp.release.value = 0.25;
 
-    // Страховка от клиппинга и подтяжка тихих мест
-    playbackCompressor = audioContext.createDynamicsCompressor();
-    playbackCompressor.threshold.value = -18;
-    playbackCompressor.knee.value = 24;
-    playbackCompressor.ratio.value = 4;
-    playbackCompressor.attack.value = 0.003;
-    playbackCompressor.release.value = 0.25;
+    pbSource.connect(pbFilter); pbFilter.connect(pbPre);
+    pbPre.connect(pbShaper); pbShaper.connect(pbPost);
+    pbPost.connect(pbComp); pbComp.connect(audioContext.destination);
 
-    playbackSource.connect(playbackFilter);
-    playbackFilter.connect(playbackPreGain);
-    playbackPreGain.connect(playbackShaper);
-    playbackShaper.connect(playbackPostGain);
-    playbackPostGain.connect(playbackCompressor);
-    playbackCompressor.connect(audioContext.destination);
-
-    const thisSource = playbackSource;
-    playbackSource.onended = () => {
-        if (playbackSource === thisSource) {
-            statusText.innerText = 'SYSTEM READY';
-            cleanupPlayback();
-        }
+    const s = pbSource;
+    pbSource.onended = () => {
+        if (pbSource === s) { statusText.innerText = 'SYSTEM READY'; cleanup(); }
     };
-
-    playbackSource.start();
+    pbSource.start();
     statusText.innerText = 'PLAYING — крутите ручки!';
 }
-
-function cleanupPlayback() {
-    if (playbackSource) { playbackSource.onended = null; playbackSource.disconnect(); playbackSource = null; }
-    if (playbackFilter) { playbackFilter.disconnect(); playbackFilter = null; }
-    if (playbackPreGain) { playbackPreGain.disconnect(); playbackPreGain = null; }
-    if (playbackShaper) { playbackShaper.disconnect(); playbackShaper = null; }
-    if (playbackPostGain) { playbackPostGain.disconnect(); playbackPostGain = null; }
-    if (playbackCompressor) { playbackCompressor.disconnect(); playbackCompressor = null; }
+function cleanup() {
+    [pbSource, pbFilter, pbPre, pbShaper, pbPost, pbComp].forEach(n => { if (n) { n.disconnect(); } });
+    pbSource = pbFilter = pbPre = pbShaper = pbPost = pbComp = null;
 }
-
 function stopPlayback() {
-    if (playbackSource) {
-        playbackSource.onended = null;
-        try { playbackSource.stop(); } catch (_) {}
-    }
-    cleanupPlayback();
+    if (pbSource) { pbSource.onended = null; try { pbSource.stop(); } catch(_){} }
+    cleanup();
 }
 
-// ============================================================
-// 6. Крутилки
-// ============================================================
 new Knob(document.getElementById('pitchKnob'), {
-    min: 0.5, max: 1.5, value: 0.7, mapping: 'linear',
+    min: 0.5, max: 1.5, value: 0.8, mapping: 'linear',
     format: v => v.toFixed(2) + '×',
-    onChange: v => {
-        currentPlaybackRate = v;
-        if (playbackSource && audioContext)
-            playbackSource.playbackRate.setTargetAtTime(v, audioContext.currentTime, 0.02);
-    }
+    onChange: v => { currentRate = v;
+        if (pbSource) pbSource.playbackRate.setTargetAtTime(v, audioContext.currentTime, 0.02); }
 });
-
 new Knob(document.getElementById('filterKnob'), {
     min: 500, max: 8000, value: 3000, mapping: 'log',
     format: v => Math.round(v) + ' Hz',
-    onChange: v => {
-        currentFilterFreq = v;
-        if (playbackFilter && audioContext)
-            playbackFilter.frequency.setTargetAtTime(v, audioContext.currentTime, 0.02);
-    }
+    onChange: v => { currentFreq = v;
+        if (pbFilter) pbFilter.frequency.setTargetAtTime(v, audioContext.currentTime, 0.02); }
 });
-
 new Knob(document.getElementById('distKnob'), {
     min: 0.1, max: 5, value: 1.5, mapping: 'linear',
     format: v => v.toFixed(1),
-    onChange: v => {
-        currentDrive = v;
-        if (playbackPreGain && audioContext)
-            playbackPreGain.gain.setTargetAtTime(v / 3, audioContext.currentTime, 0.02);
-    }
+    onChange: v => { currentDrive = v;
+        if (pbPre) pbPre.gain.setTargetAtTime(v / 3, audioContext.currentTime, 0.02); }
 });
 
-// ============================================================
-// 7. Кнопка записи
-// ============================================================
 recordBtn.addEventListener('pointerdown', async e => {
-    e.preventDefault();
-    recordBtn.setPointerCapture(e.pointerId);
-    await startRecording();
+    e.preventDefault(); recordBtn.setPointerCapture(e.pointerId); await startRecording();
 });
 recordBtn.addEventListener('pointerup', e => {
     stopRecording();
-    if (recordBtn.hasPointerCapture(e.pointerId))
-        recordBtn.releasePointerCapture(e.pointerId);
+    if (recordBtn.hasPointerCapture(e.pointerId)) recordBtn.releasePointerCapture(e.pointerId);
 });
 recordBtn.addEventListener('pointercancel', e => {
     stopRecording();
-    if (recordBtn.hasPointerCapture(e.pointerId))
-        recordBtn.releasePointerCapture(e.pointerId);
-});
-recordBtn.addEventListener('lostpointercapture', () => {
-    if (isRecording) stopRecording();
+    if (recordBtn.hasPointerCapture(e.pointerId)) recordBtn.releasePointerCapture(e.pointerId);
 });
 </script>
 </body>
