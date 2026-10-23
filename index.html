@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-time Voice FX Mixer</title>
+
+    <!-- Tone.js 14.7.50: стабильная версия с проверенным CDN-путём -->
+    <script src="https://cdn.jsdelivr.net/npm/tone@14.7.50/build/Tone.js"></script>
+    <!-- input-knob 0.0.11: UMD-сборка для прямого подключения -->
+    <script src="https://cdn.jsdelivr.net/npm/input-knob@0.0.11/dist/input-knob.umd.js"></script>
+
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #121214;
+            color: #e0e0e3;
+            font-family: 'Consolas', 'Courier New', monospace;
+        }
+
+        .mixer-panel {
+            background: linear-gradient(145deg, #1e1e24, #141418);
+            padding: 40px 30px;
+            border-radius: 16px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7), inset 0 1px 2px rgba(255, 255, 255, 0.1);
+            border: 2px solid #282830;
+            text-align: center;
+            width: 360px;
+        }
+
+        h1 {
+            font-size: 18px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: #ff3333;
+            margin-top: 0;
+            margin-bottom: 30px;
+            text-shadow: 0 0 8px rgba(255, 51, 51, 0.3);
+            border-bottom: 1px dashed #3a3a48;
+            padding-bottom: 15px;
+        }
+
+        .knobs-rack {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 35px;
+            background: #17171c;
+            padding: 20px 10px;
+            border-radius: 8px;
+            border: 1px solid #22222a;
+        }
+
+        .knob-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .knob-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #8a8a98;
+            margin-top: 8px;
+        }
+
+        input-knob {
+            width: 60px;
+            height: 60px;
+            display: inline-block;
+        }
+
+        /* Стилизация внутреннего ротатора input-knob */
+        input-knob::part(rotator) {
+            background: #2c2c35;
+            border-radius: 50%;
+            box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.1), 0 2px 6px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Метка-указатель внутри крутилки */
+        .knob-mark {
+            display: inline-block;
+            width: 100%;
+            text-align: center;
+            font: bold 18px monospace;
+            color: #ff3333;
+            line-height: 60px;
+            pointer-events: none;
+        }
+
+        .rec-control {
+            margin-bottom: 20px;
+        }
+
+        button {
+            padding: 20px 40px;
+            font-size: 15px;
+            font-weight: bold;
+            font-family: inherit;
+            letter-spacing: 1px;
+            cursor: pointer;
+            border: 1px solid #ff3333;
+            border-radius: 4px;
+            background-color: #1c1c22;
+            color: #ff3333;
+            box-shadow: 0 0 10px rgba(255, 51, 51, 0.1);
+            transition: all 0.15s ease-in-out;
+            user-select: none;
+            -webkit-user-select: none;
+            outline: none;
+            width: 100%;
+            touch-action: none; /* Важно для pointer capture и предотвращения скролла */
+        }
+
+        button:hover {
+            background-color: #ff3333;
+            color: #121214;
+            box-shadow: 0 0 20px rgba(255, 51, 51, 0.4);
+        }
+
+        button.recording {
+            background-color: #ff3333;
+            color: #ffffff;
+            animation: pulse 1.5s infinite;
+            border-color: #ffffff;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 15px rgba(255, 51, 51, 0.6); }
+            50% { box-shadow: 0 0 30px rgba(255, 51, 51, 1); }
+            100% { box-shadow: 0 0 15px rgba(255, 51, 51, 0.6); }
+        }
+
+        .display-panel {
+            background-color: #0b0b0d;
+            border: 1px solid #22222a;
+            padding: 12px;
+            border-radius: 4px;
+            min-height: 18px;
+        }
+
+        p {
+            margin: 0;
+            font-size: 13px;
+            color: #00ffcc;
+            text-shadow: 0 0 5px rgba(0, 255, 204, 0.5);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="mixer-panel">
+        <h1>Real-time FX Mixer</h1>
+
+        <div class="knobs-rack">
+            <div class="knob-container">
+                <!-- input-knob: кастомный веб-компонент, value меняется при вращении -->
+                <input-knob id="pitchKnob" value="-6" min="-12" max="0" scale="2">
+                    <div class="knob-mark">▲</div>
+                </input-knob>
+                <div class="knob-label">Pitch</div>
+            </div>
+
+            <div class="knob-container">
+                <input-knob id="filterKnob" value="1200" min="400" max="3000" scale="100">
+                    <div class="knob-mark">▲</div>
+                </input-knob>
+                <div class="knob-label">Muffler</div>
+            </div>
+
+            <div class="knob-container">
+                <input-knob id="distKnob" value="20" min="1" max="100" scale="5">
+                    <div class="knob-mark">▲</div>
+                </input-knob>
+                <div class="knob-label">Drive</div>
+            </div>
+        </div>
+
+        <div class="rec-control">
+            <button id="recordBtn">HOLD TO RECORD</button>
+        </div>
+
+        <div class="display-panel">
+            <p id="status">INITIALIZING...</p>
+        </div>
+    </div>
+
+    <script>
+        // ============================================================
+        // 1. Состояние приложения
+        // ============================================================
+        let mediaRecorder = null;
+        let audioChunks = [];
+        let currentAudioUrl = null;
+
+        const recordBtn = document.getElementById('recordBtn');
+        const statusText = document.getElementById('status');
+
+        const pitchKnob = document.getElementById('pitchKnob');
+        const filterKnob = document.getElementById('filterKnob');
+        const distKnob = document.getElementById('distKnob');
+
+        // Глобальные узлы Tone.js (создаются один раз)
+        let pitchShift = null;
+        let filter = null;
+        let distortion = null;
+        let player = null;
+        let isAudioPipelineReady = false;
+
+        // ============================================================
+        // 2. Инициализация аудио-цепочки
+        // ============================================================
+        function initAudioPipeline() {
+            if (isAudioPipelineReady) return;
+
+            // PitchShift: понижение тона. Начальное значение берём с крутилки.
+            pitchShift = new Tone.PitchShift(parseFloat(pitchKnob.value)).toDestination();
+
+            // Lowpass-фильтр: «глухость» маски.
+            filter = new Tone.Filter(parseFloat(filterKnob.value), 'lowpass').connect(pitchShift);
+
+            // Chebyshev: лёгкая роботизация / перегруз.
+            distortion = new Tone.Chebyshev(parseInt(distKnob.value)).connect(filter);
+
+            // Плеер подключается к первому узлу цепочки (distortion → filter → pitchShift → destination)
+            player = new Tone.Player().connect(distortion);
+
+            isAudioPipelineReady = true;
+            statusText.innerText = 'SYSTEM READY';
+        }
+
+        // ============================================================
+        // 3. Real-time обновление параметров с крутилок
+        // ============================================================
+        pitchKnob.addEventListener('input', () => {
+            if (isAudioPipelineReady && pitchShift) {
+                pitchShift.pitch = parseFloat(pitchKnob.value);
+            }
+        });
+
+        filterKnob.addEventListener('input', () => {
+            if (isAudioPipelineReady && filter) {
+                // rampTo сглаживает изменения, чтобы не было щелчков
+                filter.frequency.rampTo(parseFloat(filterKnob.value), 0.05);
+            }
+        });
+
+        distKnob.addEventListener('input', () => {
+            if (isAudioPipelineReady && distortion) {
+                distortion.order = parseInt(distKnob.value);
+            }
+        });
+
+        // ============================================================
+        // 4. Pointer Events: запись по удержанию с pointer capture
+        // ============================================================
+        recordBtn.addEventListener('pointerdown', async (e) => {
+            e.preventDefault();
+
+            // Инициализация AudioContext должна происходить внутри пользовательского жеста
+            if (!isAudioPipelineReady) {
+                try {
+                    await Tone.start();
+                    initAudioPipeline();
+                } catch (err) {
+                    console.error('Tone.start() failed:', err);
+                    statusText.innerText = 'AUDIO CONTEXT ERROR';
+                    return;
+                }
+            }
+
+            // Захватываем указатель: pointerup сработает даже если курсор ушёл с кнопки
+            recordBtn.setPointerCapture(e.pointerId);
+
+            startRecording();
+        });
+
+        recordBtn.addEventListener('pointerup', (e) => {
+            stopRecording();
+            // Освобождаем захват, если он ещё активен
+            if (recordBtn.hasPointerCapture(e.pointerId)) {
+                recordBtn.releasePointerCapture(e.pointerId);
+            }
+        });
+
+        recordBtn.addEventListener('pointercancel', (e) => {
+            stopRecording();
+            if (recordBtn.hasPointerCapture(e.pointerId)) {
+                recordBtn.releasePointerCapture(e.pointerId);
+            }
+        });
+
+        // ============================================================
+        // 5. Запись
+        // ============================================================
+        async function startRecording() {
+            // Останавливаем предыдущее воспроизведение, если оно ещё идёт
+            if (player && player.state === 'started') {
+                player.onstop = null;
+                player.stop();
+            }
+
+            audioChunks = [];
+            statusText.innerText = 'RECORDING...';
+            recordBtn.classList.add('recording');
+
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+                // Выбираем поддерживаемый MIME-тип вместо хардкода audio/mp3
+                let mimeType = '';
+                if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
+                    mimeType = 'audio/webm;codecs=opus';
+                } else if (MediaRecorder.isTypeSupported('audio/webm')) {
+                    mimeType = 'audio/webm';
+                } else if (MediaRecorder.isTypeSupported('audio/ogg;codecs=opus')) {
+                    mimeType = 'audio/ogg;codecs=opus';
+                }
+                // Если ничего не поддерживается, оставляем пустую строку — браузер выберет сам
+
+                const options = mimeType ? { mimeType } : {};
+                mediaRecorder = new MediaRecorder(stream, options);
+
+                mediaRecorder.ondataavailable = (event) => {
+                    if (event.data && event.data.size > 0) {
+                        audioChunks.push(event.data);
+                    }
+                };
+
+                mediaRecorder.onstop = () => {
+                    // Освобождаем микрофон сразу после остановки записи
+                    stream.getTracks().forEach((track) => track.stop());
+                    processAndPlayAudio();
+                };
+
+                mediaRecorder.start();
+            } catch (err) {
+                console.error('Microphone access error:', err);
+                statusText.innerText = 'MIC ERROR — разрешите доступ';
+                recordBtn.classList.remove('recording');
+            }
+        }
+
+        function stopRecording() {
+            if (mediaRecorder && mediaRecorder.state === 'recording') {
+                mediaRecorder.stop();
+            }
+            recordBtn.classList.remove('recording');
+        }
+
+        // ============================================================
+        // 6. Обработка и воспроизведение
+        // ============================================================
+        async function processAndPlayAudio() {
+            if (audioChunks.length === 0) {
+                statusText.innerText = 'NO AUDIO — попробуйте ещё раз';
+                return;
+            }
+
+            // Освобождаем предыдущий Blob URL
+            if (currentAudioUrl) {
+                URL.revokeObjectURL(currentAudioUrl);
+                currentAudioUrl = null;
+            }
+
+            // Используем реальный MIME-тип рекордера, а не audio/mp3
+            const actualMimeType = mediaRecorder && mediaRecorder.mimeType
+                ? mediaRecorder.mimeType
+                : 'audio/webm';
+
+            const audioBlob = new Blob(audioChunks, { type: actualMimeType });
+            currentAudioUrl = URL.createObjectURL(audioBlob);
+
+            statusText.innerText = 'LOADING...';
+
+            try {
+                // Сбрасываем старый onstop, чтобы он не перезаписал статус нового воспроизведения
+                if (player.onstop) {
+                    player.onstop = null;
+                }
+
+                await player.load(currentAudioUrl);
+
+                // onstop устанавливаем только после успешной загрузки
+                player.onstop = () => {
+                    statusText.innerText = 'SYSTEM READY';
+                };
+
+                player.start();
+                statusText.innerText = 'PLAYING — крутите ручки!';
+            } catch (err) {
+                console.error('Playback error:', err);
+                statusText.innerText = 'PLAYBACK ERROR';
+            }
+        }
+
+        // ============================================================
+        // 7. Обработка потери pointer capture (на случай непредвиденных ситуаций)
+        // ============================================================
+        recordBtn.addEventListener('lostpointercapture', () => {
+            // Если запись всё ещё активна, но захват потерян — принудительно останавливаем
+            if (mediaRecorder && mediaRecorder.state === 'recording') {
+                stopRecording();
+            }
+        });
+    </script>
+</body>
+</html>
